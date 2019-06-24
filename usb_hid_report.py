@@ -237,6 +237,11 @@ def write_reports(reports: list):
             fd.write(compile_hid_report())
 
 
+def hid_type(x: str):
+    reports = [report_dict[c] for c in x]
+    write_reports(reports)
+
+
 if __name__ == "__main__":
     # single_key = '-=`,./;\'[]\\'
     # for c in single_key:
@@ -250,5 +255,20 @@ if __name__ == "__main__":
     write_report(open_run)
     time.sleep(0.1)
 
-    type_cmd = [report_dict[c] for c in 'cmd\n']
-    write_reports(type_cmd)
+    hid_type('cmd\n')
+
+    time.sleep(0.05)
+    hid_type('notepad\n')
+
+    lines = open(os.path.basename(__file__)).readlines()
+    lines = ''.join(lines)
+
+    write_report(compile_hid_report(k1=keycode_dict['f5']))
+
+    hid_type('\n')
+
+    hid_type(lines)
+
+    hid_type('\n')
+
+    write_report(compile_hid_report(k1=keycode_dict['f5']))

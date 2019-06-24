@@ -17,7 +17,7 @@ sudo touch /usr/bin/raspizero_hid
 sudo chmod +x /usr/bin/raspizero_hid
 ```
 
-- Add `/usr/bin/raspizero_hid` to `/ect/rc.local` before `exit 0`
+- Add `/usr/bin/raspizero_hid` to `/etc/rc.local` before `exit 0`
 
 ## Create the gadget
 
