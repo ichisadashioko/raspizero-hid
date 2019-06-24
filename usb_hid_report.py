@@ -3,11 +3,13 @@
 from __future__ import print_function
 import os
 import time
+import base64
+import argparse
 
 
 def compile_hid_report(m=0b00000000, r=0b00000000, k1=0b00000000, k2=0b00000000, k3=0b00000000, k4=0b00000000, k5=0b00000000, k6=0b00000000):
     """
-    Write USB HID report.
+    Compile USB HID report (8 bytes).
 
     `m`: Modifier keys status. This byte is a bitfield, where each bit corresponds to a specific modifier key. When a bit is set to 1, the corresponding modifier key is being pressed. Unlike PS/2 keyboards, USB keyboards don't have "scancodes" for modifier keys.
 
@@ -117,6 +119,7 @@ modifier_dict = {
     'right_alt': 0b01000000,
     'right_gui': 0b10000000,
 }
+
 report_dict = {
     # 'gui r': compile_hid_report(m=modifier_dict['left_gui'], k1=keycode_dict['r']),
     # 'alt f4': compile_hid_report(m=modifier_dict['left_alt'], k1=keycode_dict['f1']),
@@ -225,6 +228,7 @@ report_dict = {
 
 
 def write_report(report: bytes):
+    """Press and release key(s)"""
     with open('/dev/hidg0', 'rb+') as fd:
         fd.write(report)
         fd.write(compile_hid_report())
@@ -242,33 +246,34 @@ def hid_type(x: str):
     write_reports(reports)
 
 
-if __name__ == "__main__":
-    # single_key = '-=`,./;\'[]\\'
-    # for c in single_key:
-    #     print(f'\'{c}\': compile_hid_report(k1=keycode_dict[\'{c}\']),')
-
-    # shift_chars = '~!@#$%^&*()_+<>?{}:"|'
-    # for c in shift_chars:
-    #     print(f'\'{c}\': compile_hid_report(m=modifier_dict[\'left_shift\'], k1=keycode_dict[\'{c}\']),')
-
-    open_run = compile_hid_report(m=modifier_dict['left_gui'], k1=keycode_dict['r'])
-    write_report(open_run)
-    time.sleep(0.1)
-
-    hid_type('cmd\n')
-
+def open_run():
+    # open Windows Run
+    write_report(compile_hid_report(m=modifier_dict['left_gui'], k1=keycode_dict['r']))
     time.sleep(0.05)
+
+
+def inject_file(filepath):
+    """Inject file as base64 string."""
+    if not os.path.exists(filepath):
+        return
+
+    open_run()
+    # open notepad
     hid_type('notepad\n')
+    time.sleep(0.2)
+    x = open(filepath, mode='rb').read()
+    x = str(base64.encodebytes(x))
+    hid_type(x)
 
-    lines = open(os.path.basename(__file__)).readlines()
-    lines = ''.join(lines)
 
-    write_report(compile_hid_report(k1=keycode_dict['f5']))
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', type=str, default=os.path.basename(__file__), help='input file')
 
-    hid_type('\n')
+    args = parser.parse_args()
 
-    hid_type(lines)
+    if not os.path.exists(args.f):
+        print(args.f, 'not exist')
 
-    hid_type('\n')
-
-    write_report(compile_hid_report(k1=keycode_dict['f5']))
+    else:
+        inject_file(args.f)
