@@ -10,7 +10,10 @@ def compile_hid_report(m=0b00000000, r=0b00000000, k1=0b00000000, k2=0b00000000,
     """
     Compile USB HID report (8 bytes).
 
-    `m`: Modifier keys status. This byte is a bitfield, where each bit corresponds to a specific modifier key. When a bit is set to 1, the corresponding modifier key is being pressed. Unlike PS/2 keyboards, USB keyboards don't have "scancodes" for modifier keys.
+    `m`: Modifier keys status. This byte is a bitfield, 
+    where each bit corresponds to a specific modifier key.
+    When a bit is set to 1, the corresponding modifier key is being pressed.
+    Unlike PS/2 keyboards, USB keyboards don't have "scancodes" for modifier keys.
 
     ```
     1st bit - Left Ctrl

@@ -2,7 +2,7 @@
 
 The following instructions will turn *Raspberry Pi Zero* into a HID keyboard to perform keystroke injection.
 
-*Note*: `Zero` model only, not the `3B+`, `3B`, `3A`, etc.)
+*Note*: `Zero` model only, not the `3B+`, `3B`, `3A`, etc.
 
 ## Instructions
 
