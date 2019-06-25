@@ -3,7 +3,6 @@
 from __future__ import print_function
 import os
 import time
-import base64
 import argparse
 
 
@@ -41,6 +40,7 @@ def compile_hid_report(m=0b00000000, r=0b00000000, k1=0b00000000, k2=0b00000000,
     return bytes([m, r, k1, k2, k3, k4, k5, k6])
 
 
+# the HID keycode to be set in `k1` to `k6`
 keycode_dict = {
     'a': 0x4,
     'b': 0x5,
@@ -107,6 +107,7 @@ keycode_dict = {
     'f10': 0x43,
     'f11': 0x44,
     'f12': 0x45,
+    'delete': 0x4c,
 }
 
 modifier_dict = {
@@ -120,9 +121,8 @@ modifier_dict = {
     'right_gui': 0b10000000,
 }
 
+# some single, common keys/characters
 report_dict = {
-    # 'gui r': compile_hid_report(m=modifier_dict['left_gui'], k1=keycode_dict['r']),
-    # 'alt f4': compile_hid_report(m=modifier_dict['left_alt'], k1=keycode_dict['f1']),
     '\t': compile_hid_report(k1=keycode_dict['tab']),
     '\n': compile_hid_report(k1=keycode_dict['enter']),
     ' ': compile_hid_report(k1=keycode_dict['space']),
@@ -226,6 +226,9 @@ report_dict = {
     'Z': compile_hid_report(m=modifier_dict['left_shift'], k1=keycode_dict['z']),
 }
 
+# Press keys means to write 8 bytes report to a file. In this case is `/dev/hidg0`.
+# Release keys mean to write 8 bytes report (all bytes are 0s) to `/dev/hidg0`
+
 
 def write_report(report: bytes):
     """Press and release key(s)"""
@@ -242,6 +245,8 @@ def write_reports(reports: list):
 
 
 def hid_type(x: str):
+    # Loop through every character in the string and get the HID report from `report_dict`
+    # Create a report list
     reports = [report_dict[c] for c in x]
     write_reports(reports)
 
@@ -249,21 +254,80 @@ def hid_type(x: str):
 def open_run():
     # open Windows Run
     write_report(compile_hid_report(m=modifier_dict['left_gui'], k1=keycode_dict['r']))
-    time.sleep(0.05)
 
 
-def inject_file(filepath):
-    """Inject file as base64 string."""
+def close_windows():
+    write_report(compile_hid_report(m=modifier_dict['left_alt'], k1=keycode_dict['f4']))
+
+
+def inject_file(filepath, gui_wait=0.2):
+    """
+    Inject a file by open notepad and type all the file content.
+    Then save to disk (default folder when press Ctrl+S) with the base filename (without parent directory).
+    """
     if not os.path.exists(filepath):
         return
 
     open_run()
+    time.sleep(gui_wait)
     # open notepad
     hid_type('notepad\n')
-    time.sleep(0.2)
-    x = open(filepath, mode='rb').read()
-    x = str(base64.encodebytes(x))
+    time.sleep(gui_wait)
+
+    # read all the file content in memory. Yeah pretty bad with large file. Need to be improved.
+    x = open(filepath).readlines()
+    # `readlines()` returns a `list` of lines. Join them together.
+    x = ''.join(x)
+
     hid_type(x)
+
+    # press Ctrl + S
+    write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['s']))
+    time.sleep(gui_wait)
+
+    # type the filename
+    hid_type(os.path.basename(filepath))
+    # hit enter
+    hid_type('\n')
+    time.sleep(gui_wait)
+    # Alt + F4
+    close_windows()
+
+
+def test_type_speed(filepath, gui_wait=0.2):
+    if not os.path.exists(filepath):
+        return
+
+    open_run()
+    time.sleep(gui_wait)
+    # open notepad
+    hid_type('notepad\n')
+    time.sleep(gui_wait)
+
+    # read all the file content in memory. Yeah pretty bad with large file. Need to be improved.
+    x = open(filepath).readlines()
+    # `readlines()` returns a `list` of lines. Join them together.
+    x = ''.join(x)
+
+    start_time = time.time()
+
+    hid_type(x)
+
+    type_time = time.time() - start_time
+
+    type_speed = len(x) / type_time
+    print('num_keys:', len(x))
+    print('type_time:', type_time)
+    print('type_speed: {:.2f} key/sec'.format(type_speed))
+
+    # Ctrl + A
+    write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['a']))
+    # Ctrl + C
+    write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['c']))
+    # delete
+    write_report(compile_hid_report(k1=keycode_dict['delete']))
+    # Alt + F4
+    close_windows()
 
 
 if __name__ == "__main__":
@@ -276,4 +340,5 @@ if __name__ == "__main__":
         print(args.f, 'not exist')
 
     else:
-        inject_file(args.f)
+        # inject_file(args.f)
+        test_type_speed(args.f)
