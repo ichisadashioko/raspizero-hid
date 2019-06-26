@@ -231,27 +231,40 @@ report_dict = {
 
 # Press keys means to write 8 bytes report to a file. In this case is `/dev/hidg0`.
 # Release keys mean to write 8 bytes report (all bytes are 0s) to `/dev/hidg0`
+HID_FILENAME = '/dev/hidg0'
 
 
 def write_report(report: bytes):
     """Press and release key(s)"""
-    with open('/dev/hidg0', 'rb+') as fd:
+    global HID_FILENAME
+    with open(HID_FILENAME, 'rb+') as fd:
         fd.write(report)
         fd.write(compile_hid_report())
 
 
 def write_reports(reports: list):
-    with open('/dev/hidg0', 'rb+') as fd:
+    global HID_FILENAME
+    with open(HID_FILENAME, 'rb+') as fd:
         for report in reports:
             fd.write(report)
             fd.write(compile_hid_report())
 
 
-def hid_type(x: str):
+def hid_type(x: str, byte_length=8):
     # Loop through every character in the string and get the HID report from `report_dict`
     # Create a report list
-    reports = [report_dict[c] for c in x]
-    write_reports(reports)
+    global HID_FILENAME
+    payload_file = 'string_payload'
+    with open(payload_file, mode='wb') as pf:
+        for c in x:
+            pf.write(report_dict[c])
+
+    with open(payload_file, mode='rb') as pf, open(HID_FILENAME, mode='rb+') as report_file:
+        b = pf.read(byte_length)
+        while b != b'':
+            report_file.write(b)
+            b = pf.read(byte_length)
+        # write_reports(reports)
 
 
 def open_run():
