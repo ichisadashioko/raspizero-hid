@@ -362,7 +362,7 @@ def inject_file(filepath, gui_wait=0.2):
 
     type_start = time.time()
     key_count = run_payload_file(PAYLOAD_FILEPATH)
-    type_time = time.time()
+    type_time = time.time() - type_start
 
     type_speed = key_count / type_time
 
