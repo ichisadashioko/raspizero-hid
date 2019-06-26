@@ -312,8 +312,8 @@ def encode_file_to_payload(filepath):
         for line in src_file:
             for c in line:
                 p_file.write(report_dict[c])
-                if c == ' ':  # comment this block if you want to keep all the spaces
-                    continue
+                # if c == ' ':  # comment this block if you want to keep all the spaces
+                #     continue
                 # release the key otherwise `dd` -> `d`
                 p_file.write(compile_hid_report())
 
@@ -349,7 +349,7 @@ def inject_file(filepath, gui_wait=0.2):
         return
 
     # encode payload in thread
-    x = threading.Thread(target=encode_file_to_payload, args=(filepath))
+    x = threading.Thread(target=encode_file_to_payload, args=(filepath,))
     x.start()
     # open Windows run
     open_run()
@@ -365,6 +365,10 @@ def inject_file(filepath, gui_wait=0.2):
     type_time = time.time()
 
     type_speed = key_count / type_time
+
+    print('key_count:', key_count)
+    print('type_time:', type_time)
+    print('type_speed: {:.2f} key/sec'.format(type_speed))
 
     # press Ctrl + S
     write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['s']))
