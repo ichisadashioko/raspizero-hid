@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import time
 import argparse
+import threading
 
 
 def compile_hid_report(m=0b00000000, r=0b00000000, k1=0b00000000, k2=0b00000000, k3=0b00000000, k4=0b00000000, k5=0b00000000, k6=0b00000000):
@@ -229,13 +230,14 @@ report_dict = {
     'Z': compile_hid_report(m=modifier_dict['left_shift'], k1=keycode_dict['z']),
 }
 
-# Press keys means to write 8 bytes report to a file. In this case is `/dev/hidg0`.
-# Release keys mean to write 8 bytes report (all bytes are 0s) to `/dev/hidg0`
+
 HID_FILENAME = '/dev/hidg0'
 
 
 def write_report(report: bytes):
     """Press and release key(s)"""
+    # Press keys means to write 8 bytes report to a file. In this case is `/dev/hidg0`.
+    # Release keys mean to write 8 bytes report (all bytes are 0s) to `/dev/hidg0`
     global HID_FILENAME
     with open(HID_FILENAME, 'rb+') as fd:
         fd.write(report)
@@ -250,7 +252,25 @@ def write_reports(reports: list):
             fd.write(compile_hid_report())
 
 
-def hid_type(x: str, byte_length=8):
+def hid_type(x: str):
+    # Loop through every character in the string
+    # and generate the HID report for each character
+    # then pass the list to `write_reports`
+    reports = [report_dict[c] for c in x]
+    write_reports(reports)
+
+
+def type_string_as_list(x: str):
+    encode_start = time.time()
+    reports = [report_dict[c] for c in x]
+    encode_time = time.time() - encode_start
+
+    stream_start = time.time()
+    write_reports(reports)
+    stream_time = time.time() - stream_start
+
+
+def type_string_load_file(x: str, byte_length=8):
     # Loop through every character in the string and get the HID report from `report_dict`
     # Create a report list
     global HID_FILENAME
@@ -264,7 +284,6 @@ def hid_type(x: str, byte_length=8):
         while b != b'':
             report_file.write(b)
             b = pf.read(byte_length)
-        # write_reports(reports)
 
 
 def open_run():
@@ -276,26 +295,76 @@ def close_windows():
     write_report(compile_hid_report(m=modifier_dict['left_alt'], k1=keycode_dict['f4']))
 
 
+PAYLOAD_FILEPATH = None
+
+
+def encode_file_to_payload(filepath):
+    """
+    Encode file content as HID bytes
+    """
+    # use global variable to run this function in a thread and get the return value
+    global PAYLOAD_FILEPATH
+    if not os.path.exists(filepath):
+        return None
+
+    payload_filename = os.path.basename(filepath) + '.hid_payload'
+    with open(filepath, mode='r') as src_file, open(payload_filename, mode='wb') as p_file:
+        for line in src_file:
+            for c in line:
+                p_file.write(report_dict[c])
+                if c == ' ':  # comment this block if you want to keep all the spaces
+                    continue
+                # release the key otherwise `dd` -> `d`
+                p_file.write(compile_hid_report())
+
+    # set the global variable
+    PAYLOAD_FILEPATH = payload_filename
+
+    return payload_filename
+
+
+def run_payload_file(payload_file, byte_length=8):
+    global HID_FILENAME
+    if not os.path.exists(payload_file):
+        return None
+
+    with open(payload_file, mode='rb') as pf, open(HID_FILENAME, mode='rb+') as report_file:
+        b = pf.read(byte_length)
+        while b != b'':
+            report_file.write(b)
+            b = pf.read(byte_length)
+    
+    payload_size = os.path.getsize(payload_file)
+    key_count = payload_size / 8
+    return key_count
+
+
 def inject_file(filepath, gui_wait=0.2):
     """
     Inject a file by open notepad and type all the file content.
     Then save to disk (default folder when press Ctrl+S) with the base filename (without parent directory).
     """
+    global PAYLOAD_FILEPATH
     if not os.path.exists(filepath):
         return
 
+    # encode payload in thread
+    x = threading.Thread(target=encode_file_to_payload, args=(filepath))
+    x.start()
+    # open Windows run
     open_run()
     time.sleep(gui_wait)
     # open notepad
     hid_type('notepad\n')
     time.sleep(gui_wait)
 
-    # read all the file content in memory. Yeah pretty bad with large file. Need to be improved.
-    x = open(filepath).readlines()
-    # `readlines()` returns a `list` of lines. Join them together.
-    x = ''.join(x)
+    x.join()
 
-    hid_type(x)
+    type_start = time.time()
+    key_count = run_payload_file(PAYLOAD_FILEPATH)
+    type_time = time.time()
+
+    type_speed = key_count / type_time
 
     # press Ctrl + S
     write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['s']))
@@ -320,21 +389,30 @@ def test_type_speed(filepath, gui_wait=0.2):
     hid_type('notepad\n')
     time.sleep(gui_wait)
 
-    # read all the file content in memory. Yeah pretty bad with large file. Need to be improved.
+    # read all the file content in memory
+    # should not be used with large file
     x = open(filepath).readlines()
-    # `readlines()` returns a `list` of lines. Join them together.
+    # `readlines()` returns a `list` of lines
+    # join them together
     x = ''.join(x)
 
     start_time = time.time()
 
-    hid_type(x)
+    # test the type speed here
+    type_string_as_list(x)
+    type_string_load_file(x, byte_length=24)
 
     type_time = time.time() - start_time
 
+    # report test result
     type_speed = len(x) / type_time
     print('num_keys:', len(x))
     print('type_time:', type_time)
     print('type_speed: {:.2f} key/sec'.format(type_speed))
+
+    # copy the typed content to clipboard 
+    # delete all the content to close notepad without being prompted to save
+    # close notepad (to prevent have a bunch of notepad windows open when running multiple test)
 
     # Ctrl + A
     write_report(compile_hid_report(m=modifier_dict['left_ctrl'], k1=keycode_dict['a']))
@@ -348,6 +426,7 @@ def test_type_speed(filepath, gui_wait=0.2):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # this script is supposed to be run from its directory
     parser.add_argument('-f', type=str, default=os.path.basename(__file__), help='input file')
 
     args = parser.parse_args()
@@ -356,5 +435,5 @@ if __name__ == "__main__":
         print(args.f, 'not exist')
 
     else:
-        # inject_file(args.f)
-        test_type_speed(args.f)
+        inject_file(args.f)
+        # test_type_speed(args.f)
