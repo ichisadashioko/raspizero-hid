@@ -310,64 +310,23 @@ def encode_file_to_payload(filepath):
     out_fname = os.path.basename(filepath) + '.HID'
 
     with open(filepath, mode='r', encoding='utf-8') as inp_file, open(out_fname, mode='wb') as out_file:
-        # stack keys together to increase bandwidth (precision of key order is not tested)
-        key_stack = []
-        # 6 is the maximum of keys can be contained in a HID report (exclude modifiers (Ctrl, Shift, Alt, GUI))
-        max_key_stack = 6
-        # can only stack either with or without modifiers in the HID report
-        have_modifiers = None
-        modifiers = 0b01000000  # Left Shift
-
-        def key_stack_to_file():
-            """Write `key_stack` as HID report followed by a `RELEASE_REPORT`"""
-            nonlocal key_stack, modifiers, have_modifiers, out_file, hid_reports_count
-
-            if len(key_stack) == 0:
-                return
-
-            # generate dictionary for arguments mapping
-            key_args = {'k{}'.format(idx + 1): key_code for idx, key_code in enumerate(key_stack)}
-
-            if not have_modifiers:
-                # write HID report for key stack without modifiers
-                # `**key_args` will unpack every element in the dict as arguments for the function
-                out_file.write(compile_hid_report(m=0x00, **key_args))
-            else:
-                out_file.write(compile_hid_report(m=modifiers, **key_args))
-
-            out_file.write(RELEASE_REPORT)
-            key_stack = []
-
-            hid_reports_count += 2
-
         last_char = None
         for line in inp_file:
             chars_count += len(line)
             for c in line:
                 if c == last_char:
-                    key_stack_to_file()
-
-                if len(key_stack) == max_key_stack:
-                    key_stack_to_file()
-                    have_modifiers = None
-
-                if c in keycode_dict.keys():
-                    if have_modifiers:
-                        key_stack_to_file()
-                        have_modifiers = False
-
-                    key_stack.append(keycode_dict[c])
-                elif c in shifted_chars.keys():
-                    if not have_modifiers:
-                        key_stack_to_file()
-                        have_modifiers = True
-
-                    key_stack.append(shifted_chars[c])
+                    out_file.write(RELEASE_REPORT)
+                    hid_reports_count += 1
+                if c in report_dict.keys():
+                    out_file.write(report_dict[c])
+                    hid_reports_count += 1
                 else:
                     skip_count += 1
                     continue
 
                 last_char = c
+        out_file.write(RELEASE_REPORT)
+        hid_reports_count += 1
 
     info = {
         'out_fname': out_fname,
@@ -384,8 +343,7 @@ def inject_payload(filepath, throttle=0):
         print('[inject_payload]', filepath, 'does not exist!')
         return
 
-    # write 16 bytes at a time as the encoded HID report is followed by a `RELEASE_REPORT`
-    num_bytes = 16
+    num_bytes = 8
     with open(HID_FILENAME, mode='rb+') as hid_stream, open(filepath, mode='rb') as inp_file:
         bs = inp_file.read(num_bytes)
         while bs != b'':

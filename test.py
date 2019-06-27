@@ -16,7 +16,7 @@ if __name__ == "__main__":
     hid_utils.open_run()
     time.sleep(gui_wait)
     hid_utils.hid_type('notepad\n')
-    time.sleep(gui_wait)
+    # time.sleep(gui_wait)
 
     encode_start = time.time()
     pay_load_info = hid_utils.encode_file_to_payload(args.i)
@@ -38,3 +38,4 @@ if __name__ == "__main__":
     print('inject_time: {:.4f}'.format(inject_time))
     print('char_type_speed: {:.2f}'.format(char_type_speed))
     print('type_speed: {:.2f}'.format(type_speed))
+    print(pay_load_info)
