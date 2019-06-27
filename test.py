@@ -7,7 +7,7 @@ import hid_utils
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', description='input file path', type=str, default=__file__)
+    parser.add_argument('-i', dest='input file path', type=str, default=__file__)
 
     args = parser.parse_args()
 
