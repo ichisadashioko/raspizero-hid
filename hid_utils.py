@@ -320,16 +320,20 @@ def encode_file_to_payload(filepath):
 
         def key_stack_to_file():
             """Write `key_stack` as HID report followed by a `RELEASE_REPORT`"""
-            nonlocal key_stack, have_modifiers, out_file, hid_reports_count
+            nonlocal key_stack, modifiers, have_modifiers, out_file, hid_reports_count
 
             if len(key_stack) == 0:
                 return
-            elif not have_modifiers:
+
+            # generate dictionary for arguments mapping
+            key_args = {'k{}'.format(idx + 1): key_code for idx, key_code in enumerate(key_stack)}
+
+            if not have_modifiers:
                 # write HID report for key stack without modifiers
-                # `*key_stack` will unpack every element in the list as arguments for the function
-                out_file.write(compile_hid_report(m=0x00, *key_stack))
+                # `**key_args` will unpack every element in the dict as arguments for the function
+                out_file.write(compile_hid_report(m=0x00, **key_args))
             else:
-                out_file.write(compile_hid_report(m=modifiers, *key_stack))
+                out_file.write(compile_hid_report(m=modifiers, **key_args))
 
             out_file.write(RELEASE_REPORT)
             key_stack = []
