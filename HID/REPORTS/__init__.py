@@ -40,7 +40,7 @@ CHARS = {
     '7': bytes([0, 0, HID.CODE.KEY_7, *[0] * 5]), '&': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_7, *[0] * 5]),
     '8': bytes([0, 0, HID.CODE.KEY_8, *[0] * 5]), '*': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_8, *[0] * 5]),
     '9': bytes([0, 0, HID.CODE.KEY_9, *[0] * 5]), '(': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_9, *[0] * 5]),
-    '0': bytes([0, 0, HID.CODE.KEY_ * [0] * 5, 0]), ')': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_ * [0] * 5, 0]),
+    '0': bytes([0, 0, HID.CODE.KEY_0, *[0] * 5]), ')': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_0, *[0] * 5]),
 
     '\n': bytes([0, 0, HID.CODE.ENTER, *[0] * 5]),
     'ESC': bytes([0, 0, HID.CODE.ESC, *[0] * 5]),
@@ -68,7 +68,7 @@ CHARS = {
     'F7': bytes([0, 0, HID.CODE.F7, *[0] * 5]),
     'F8': bytes([0, 0, HID.CODE.F8, *[0] * 5]),
     'F9': bytes([0, 0, HID.CODE.F9, *[0] * 5]),
-    'F10': bytes([0, 0, HID.CODE.F1 * [0] * 5, 0]),
+    'F10': bytes([0, 0, HID.CODE.F10, *[0] * 5]),
     'F11': bytes([0, 0, HID.CODE.F11, *[0] * 5]),
     'F12': bytes([0, 0, HID.CODE.F12, *[0] * 5]),
 }
