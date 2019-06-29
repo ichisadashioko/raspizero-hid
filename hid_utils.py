@@ -297,9 +297,61 @@ def close_windows():
     write_report(compile_hid_report(m=modifier_dict['left_alt'], k1=keycode_dict['f4']))
 
 
-def encode_file_to_payload(filepath):
+def encode_file(filepath):
+    """
+    
+    """
     if not os.path.exists(filepath):
-        print('[encode_file_to_payload]', filepath, 'does not exist!')
+        print('[fast_encode_file]', filepath, 'does not exist!')
+        return
+
+    # stats (info)
+    chars_count = 0
+    skip_count = 0
+    hid_reports_count = 0
+
+    out_fname = os.path.basename(filepath) + '.HID'
+
+    with open(filepath, mode='r', encoding='utf-8') as inp_file, open(out_fname, mode='wb') as out_file:
+        for line in inp_file:
+            chars_count += len(line)
+            for c in line:
+                if c in report_dict.keys():
+                    out_file.write(report_dict[c])
+                    out_file.write(RELEASE_REPORT)
+                    hid_reports_count += 2
+                else:
+                    skip_count += 1
+                    continue
+
+    info = {
+        'out_fname': out_fname,
+        'chars_count': chars_count,
+        'skip_count': skip_count,
+        'reports_count': hid_reports_count,
+    }
+
+    return info
+
+
+def fast_encode_file(filepath):
+    """
+    Encode text file content as HID reports.
+
+    Should only use for text file with short line and with variety of characters.
+
+    Example:
+
+    - OK : `# encoding=utf-8`
+
+    - NOT OK : `AAADAAAAAwAAABwAAQADAAAAHAADAAEAAAAcAAQAOAAAAAoACAACAAIAAQAg6NT//f//AAAAAAAg`
+
+    - NOT OK : `<html>...{500 more characters}...</html>`
+
+    File with long line and large text file (e.g. minified javascript, base64 string) are subjected to lossy typing because the typing speed of HID injection device is too fast (the streaming code often finishes before the typing action in the target PC finishes).
+    """
+    if not os.path.exists(filepath):
+        print('[fast_encode_file]', filepath, 'does not exist!')
         return
 
     # stats (info)
@@ -338,7 +390,14 @@ def encode_file_to_payload(filepath):
     return info
 
 
-def inject_payload(filepath, throttle=0):
+def inject_payload(filepath):
+    """
+    Stream HID byte reports to `HID_FILENAME`.
+
+    The target PC will read from `HID_FILENAME` to type.
+
+    When the code finish does not nesscesary mean that the typing action in the target PC is done.
+    """
     if not os.path.exists(filepath):
         print('[inject_payload]', filepath, 'does not exist!')
         return
@@ -349,6 +408,3 @@ def inject_payload(filepath, throttle=0):
         while bs != b'':
             hid_stream.write(bs)
             bs = inp_file.read(num_bytes)
-
-            if throttle > 0:
-                time.sleep(throttle)
