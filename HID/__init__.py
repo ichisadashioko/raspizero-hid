@@ -10,7 +10,7 @@ def type_string(s):
         if c in CHARS.keys():
             out_file.write(CHARS[c])
             out_file.write(RELEASE)
-            out_file.flush()
+            #out_file.flush()
     out_file.close()
 
 

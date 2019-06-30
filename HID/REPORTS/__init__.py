@@ -6,7 +6,7 @@ RELEASE = bytes([0] * 8)
 CHARS = {
     'a': bytes([0, 0, HID.CODE.KEY_A, *[0] * 5]), 'A': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_A, *[0] * 5]),
     'b': bytes([0, 0, HID.CODE.KEY_B, *[0] * 5]), 'B': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_B, *[0] * 5]),
-    'c': bytes([0, 0, HID.CODE.KEY_D, *[0] * 5]), 'C': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_D, *[0] * 5]),
+    'c': bytes([0, 0, HID.CODE.KEY_C, *[0] * 5]), 'C': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_C, *[0] * 5]),
     'd': bytes([0, 0, HID.CODE.KEY_D, *[0] * 5]), 'D': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_D, *[0] * 5]),
     'e': bytes([0, 0, HID.CODE.KEY_E, *[0] * 5]), 'E': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_E, *[0] * 5]),
     'f': bytes([0, 0, HID.CODE.KEY_F, *[0] * 5]), 'F': bytes([HID.CODE.LEFT_SHIFT, 0, HID.CODE.KEY_F, *[0] * 5]),
