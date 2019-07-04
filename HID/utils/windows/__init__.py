@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 import HID
 import HID.CODE
+import HID.utils
 
 
 def open_run():
@@ -42,19 +43,21 @@ def save_notepad(filename: str, gui_wait=0.5):
     HID.press(bytes([0, 0, HID.CODE.ENTER, *[0] * 5]))
 
 
-def type_file_to_notepad(filepath: str, close=True, gui_wait=0.5):
+def type_file_to_notepad(filepath: str, filename=None, close=True, gui_wait=0.5):
     assert os.path.exists(filepath)
     # open notepad
     notepad()
     # wait
     time.sleep(gui_wait)
+    # get line count for progress bar
+    num_lines = HID.utils.line_count(filepath)
     # open file to read content
     with open(filepath, encoding='utf-8') as inp_file:
         # use generator with tqdm for progress visualization
-        for line in tqdm(inp_file):
+        for line in tqdm(inp_file, total=num_lines):
             HID.type_string(line)
-
-    filename = os.path.basename(filepath)
+    if filename is None:
+        filename = os.path.basename(filepath)
     save_notepad(filename)
     if close:
         time.sleep(gui_wait)
