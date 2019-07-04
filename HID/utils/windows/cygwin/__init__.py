@@ -13,7 +13,7 @@ def c_drive():
 
 
 def mkdir(filepath, recursive=True):
-    HID.type_string('mkdir -r {}\n'.format(filepath))
+    HID.type_string('mkdir -p {}\n'.format(filepath))
 
 
 def vim(filepath, insert_mode=False):
@@ -26,15 +26,15 @@ def vim(filepath, insert_mode=False):
 
 def vim_wq():
     HID.press(HID.CHARS['ESC'])
-    time.sleep(0.2)
+    time.sleep(0.5)
     HID.type_string(':wq\n')
 
 
-def type_file_to_vim(filepath, at_c_root=True):
+def type_file_to_vim(filepath, where=None):
     assert os.path.exists(filepath)
 
-    if at_c_root:
-        c_drive()
+    if where:
+        HID.type_string('cd {}\n'.format(where))
 
     parent_dir, filename = os.path.split(filepath)
     mkdir(parent_dir)
@@ -47,5 +47,5 @@ def type_file_to_vim(filepath, at_c_root=True):
         # use generator with tqdm for progress visualization
         for line in tqdm(inp_file, total=num_lines):
             HID.type_string(line)
-
+    time.sleep(0.4)
     vim_wq()

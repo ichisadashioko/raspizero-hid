@@ -42,7 +42,7 @@ def inject_file(path):
         basename, ext = os.path.splitext(path)
         if ext in file_types:
             print(path)
-            cygwin.type_file_to_vim(filepath)
+            cygwin.type_file_to_vim(path, where='/cygdrive/c/Users/"$USER"')
 
 
 if __name__ == "__main__":
