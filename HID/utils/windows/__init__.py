@@ -39,7 +39,7 @@ def save_notepad(filename: str, gui_wait=0.5):
     HID.press(bytes([HID.CODE.LEFT_CTRL, 0, HID.CODE.KEY_S, *[0] * 5]))
     time.sleep(gui_wait)
     HID.type_string(filename)
-    HID.press(bytes([0, 0, HID.CODE.ENTER]))
+    HID.press(bytes([0, 0, HID.CODE.ENTER, *[0] * 5]))
 
 
 def type_file_to_notepad(filepath: str, close=True, gui_wait=0.5):
