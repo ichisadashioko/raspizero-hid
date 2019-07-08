@@ -6,6 +6,7 @@ import re
 from tqdm import tqdm
 
 import HID
+from HID.REPORTS import CHARS
 
 
 def c_drive():
@@ -25,7 +26,7 @@ def vim(filepath, insert_mode=False):
 
 
 def vim_wq():
-    HID.press(HID.CHARS['ESC'])
+    HID.press(CHARS['ESC'])
     time.sleep(0.5)
     HID.type_string(':wq\n')
 
