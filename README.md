@@ -91,3 +91,5 @@ sudo reboot
 ```
 sudo python3 test.py
 ```
+
+When the command is too long (e.g. `argparse`), you can put it in a text file and run it by using `bash [command-text-file]`.
