@@ -89,7 +89,7 @@ sudo reboot
 ## Demo
 
 ```
-sudo python3 test.py
+bash wallpaper.sh
 ```
 
 When the command is too long (e.g. `argparse`), you can put it in a text file and run it by using `bash [command-text-file]`.
