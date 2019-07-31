@@ -21,8 +21,11 @@ def vim(filepath, insert_mode=False):
     HID.type_string('vi {}\n'.format(filepath))
 
     if insert_mode:
-        time.sleep(0.2)
+        time.sleep(0.5)
         HID.type_string('i')
+        time.sleep(0.2)
+    else:
+        time.sleep(0.5)
 
 
 def vim_wq():

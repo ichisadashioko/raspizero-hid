@@ -8,12 +8,13 @@ import HID
 import HID.utils.windows.cygwin as cygwin
 
 file_types = [
+    #'.txt',
     '.java',
     # '.html',
-    #'.css',
+    '.css',
     '.js',
-    #'.jsp',
-    #'.sql',
+    '.jsp',
+    '.sql',
     '.svg',
     '.base64',
     #'.py',
@@ -26,6 +27,7 @@ ignore_files = [
     '.pyc',
     '.git',
     '.md',
+    'nbproject',
 ]
 
 
@@ -47,9 +49,9 @@ def inject_file(path):
             print(path)
             cygwin.type_file_to_vim(
                 path, 
-                #where='/cygdrive/c/Users/"$USER"/Downloads',
+                where='/cygdrive/c/Users/"$USER"/Downloads',
             )
-            time.sleep(1.0)
+            time.sleep(0.5)
 
 
 if __name__ == "__main__":
