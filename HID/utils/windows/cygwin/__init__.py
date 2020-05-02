@@ -47,9 +47,14 @@ def type_file_to_vim(filepath, where=None):
     # get line count for progress bar
     num_lines = HID.utils.line_count(filepath)
     # open file to read content
-    with open(filepath, encoding='utf-8') as inp_file:
-        # use generator with tqdm for progress visualization
-        for line in tqdm(inp_file, total=num_lines):
-            HID.type_string(line)
+    try:
+        with open(filepath, encoding='utf-8') as inp_file:
+            # use generator with tqdm for progress visualization
+            for line in tqdm(inp_file, total=num_lines):
+                HID.type_string(line)
+    except:
+        # encoding error
+        print('Skipping', filepath)
+
     time.sleep(0.4)
     vim_wq()

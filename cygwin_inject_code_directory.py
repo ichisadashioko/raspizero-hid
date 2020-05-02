@@ -1,4 +1,10 @@
 # encoding=utf-8
+# plug Raspberry Pi Zero into a Windows PC with cygwin installed.
+# put your cursor in the cygwin terminal
+# SSH into Raspberry Pi Zero
+# execute this script
+# - this script will open vi in cygwin terminal
+# - read file content and type them into vi then save the file
 import os
 import re
 import time
