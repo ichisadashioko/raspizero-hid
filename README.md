@@ -20,7 +20,7 @@ HID report is a 8-byte package. Please read more about HID report format.
 
 - To release a key write a 8-byte full of zeros package to `/dev/hidg0`
 
-- The last 4 bytes are used to put your non-control keys. Theoretically, you can press 4 non-control keys with a 8-byte HID record. However, there is no guarantee all 4 keys will be pressed or pressed sequentially so just pack one key in one HID record, send it, and send a release record (full zeros record) to make sure a key is pressed and released properly.
+- The last 6 bytes are used to put your non-control keys. Theoretically, you can press 6 non-control keys with a 8-byte HID record. However, there is no guarantee all 6 keys will be pressed or pressed sequentially so just pack one key in one HID record, send it, and send a release record (full zeros record) to make sure a key is pressed and released properly.
 
 - "control keys" here are refered to `Ctrl`, `Shift`, and `GUI` (Start key on Windows).
 
